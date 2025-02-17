@@ -1,6 +1,10 @@
 # Node.js dependencies
 node_modules/
 
+# Package lock files
+package-lock.json
+yarn.lock
+
 # Logs
 logs/
 *.log
