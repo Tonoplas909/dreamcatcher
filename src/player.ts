@@ -18,6 +18,7 @@ import {
 
 class Player {
     // init player variables
+    scene: Scene;
     player: Mesh;
     speed: number;
     jumpHeight: number = 1;
@@ -35,28 +36,30 @@ class Player {
     };
 
     constructor(scene: Scene) {
-        this.player = MeshBuilder.CreateCapsule("player", { height: 1, radius: 0.3 }, scene);
+        this.scene = scene;
+
+        this.player = MeshBuilder.CreateCapsule("player", { height: 1, radius: 0.3 }, this.scene);
         this.player.position.y = 0.5;
 
         // material
-        var material = new StandardMaterial("playerMaterial", scene);
+        var material = new StandardMaterial("playerMaterial", this.scene);
         material.diffuseColor = new Color3(1, 0, 0);
         this.player.material = material;
 
         // 3rd person camera
-        var camera = new ArcRotateCamera("camera", 0, 1, 10, Vector3.Zero(), scene);
+        var camera = new ArcRotateCamera("camera", 0, 1, 10, Vector3.Zero(), this.scene);
         camera.speed = this.cameraSpeed;
-        camera.attachControl(scene.getEngine().getRenderingCanvas(), true);
+        camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
         camera.setTarget(this.player);
     }
 
     // function to handle key events
-    handleKeyEvents(scene: Scene) {
+    handleKeyEvents() {
         // action manager for key events
-        scene.actionManager = new ActionManager(scene);
+        this.scene.actionManager = new ActionManager(this.scene);
 
         // key down event listener
-        scene.actionManager.registerAction(
+        this.scene.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnKeyDownTrigger, (event) => {
                 let key = event.sourceEvent.key; // get the key
                 if (key !== "Shift") {
@@ -66,12 +69,12 @@ class Player {
                 if (key in this.keyStatus) {
                     this.keyStatus[key] = true;
                 }
-                console.log(this.keyStatus);
+                // console.log(this.keyStatus);
             })
         );
 
         // key up event listener
-        scene.actionManager.registerAction(
+        this.scene.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnKeyUpTrigger, (event) => {
                 let key = event.sourceEvent.key; // get the key
                 if (key !== "Shift") {
@@ -81,19 +84,19 @@ class Player {
                 if (key in this.keyStatus) {
                     this.keyStatus[key] = false;
                 }
-                console.log(this.keyStatus);
+                // console.log(this.keyStatus);
             })
         );
     }
 
     // movement player function
-    movement(scene: Scene) {
+    movement() {
         // call the function to handle key events
-        this.handleKeyEvents(scene);
+        this.handleKeyEvents();
 
         let moving = false; // check if the player is moving
 
-        scene.onBeforeRenderObservable.add(() => {
+        this.scene.onBeforeRenderObservable.add(() => {
             if (this.keyStatus["z"] || this.keyStatus["q"] || this.keyStatus["s"] || this.keyStatus["d"]) {
                 moving = true;
                 if (this.keyStatus["s"] && !this.keyStatus["z"]) {

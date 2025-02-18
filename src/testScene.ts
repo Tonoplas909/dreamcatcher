@@ -24,7 +24,7 @@ class TestScene {
         var player = new Player(scene);
 
         // call player movement
-        player.movement(scene);
+        player.movement();
     }
 }
 
