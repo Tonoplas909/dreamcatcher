@@ -20,6 +20,11 @@ class App {
         // import class TestScene
         var testScene = new TestScene(canvas, scene);
 
+        // request pointer lock on canvas click
+        canvas.addEventListener("click", () => {
+            canvas.requestPointerLock();
+        });
+
         // hide/show the Inspector
         window.addEventListener("keydown", (ev) => {
             // Shift+Ctrl+Alt+I
