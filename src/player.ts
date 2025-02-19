@@ -21,12 +21,14 @@ class Player {
     scene: Scene;
     player: Mesh;
     speed: number;
+    camera: ArcRotateCamera;
     jumpHeight: number = 1;
     walkSpeed: number = 0.03;
     walkBackSpeed: number = 0.02;
     runSpeed: number = 0.2;
-    rotationSpeed: number = 0.03;
+    MouseSensitivity: number = 0.01;
     cameraSpeed: number = 0.1;
+    yaw: number = 0;
     keyStatus: { [key: string]: boolean } = {
         z: false,
         q: false,
@@ -47,10 +49,30 @@ class Player {
         this.player.material = material;
 
         // 3rd person camera
-        var camera = new ArcRotateCamera("camera", 0, 1, 10, Vector3.Zero(), this.scene);
-        camera.speed = this.cameraSpeed;
-        camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
-        camera.setTarget(this.player);
+        this.camera = new ArcRotateCamera("camera", 0, 1, 7, this.player.position, this.scene);
+        this.camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
+        this.camera.upperBetaLimit = 1.5;
+        this.camera.alpha = 4.75; // angle of the camera
+        this.camera.lockedTarget = this.player;
+
+        this.attachMouseControl();
+    }
+
+    // function to attach mouse control
+    attachMouseControl() {
+        const canvas: HTMLCanvasElement = this.scene.getEngine().getRenderingCanvas();
+        
+        canvas.addEventListener("click", () => {
+            canvas.requestPointerLock();
+        });
+
+        // mouse move event listener
+        document.addEventListener("mousemove", (event) => {
+            if (document.pointerLockElement === canvas) {
+                this.yaw += event.movementX * this.MouseSensitivity; // get the movement of the mouse
+                this.player.rotation.y = this.yaw; // rotate the player
+            }
+        });
     }
 
     // function to handle key events
@@ -106,16 +128,11 @@ class Player {
                     // move forward
                     this.speed = this.keyStatus["Shift"] ? this.runSpeed : this.walkSpeed; // check if the player is running
                 }
-                if (this.keyStatus["q"]) {
-                    // rotate the player
-                    this.player.rotate(Vector3.Up(), -this.rotationSpeed);
-                }
-                if (this.keyStatus["d"]) {
-                    // rotate the player
-                    this.player.rotate(Vector3.Up(), this.rotationSpeed);
-                }
 
                 // move the player
+                let direction: Vector3 = new Vector3(0, 0, this.speed);
+                direction = Vector3.TransformNormal(direction, this.player.getWorldMatrix());
+                direction.y = 0;
                 this.player.moveWithCollisions(this.player.forward.scaleInPlace(this.speed));
             } else if (moving) {
                 // stop the player
