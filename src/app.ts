@@ -1,7 +1,17 @@
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders/glTF";
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Mesh, MeshBuilder, Material, StandardMaterial } from "@babylonjs/core";
+import {
+    Engine,
+    Scene,
+    ArcRotateCamera,
+    Vector3,
+    HemisphericLight,
+    Mesh,
+    MeshBuilder,
+    Material,
+    StandardMaterial,
+} from "@babylonjs/core";
 import { TestScene } from "./testScene"; // import of the other class
 
 class App {

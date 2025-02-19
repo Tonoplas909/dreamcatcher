@@ -5,15 +5,12 @@ import {
     Scene,
     ArcRotateCamera,
     Vector3,
-    HemisphericLight,
     Mesh,
     MeshBuilder,
     StandardMaterial,
-    Texture,
     Color3,
     ActionManager,
     ExecuteCodeAction,
-    Action,
 } from "@babylonjs/core";
 
 class Player {
@@ -52,7 +49,7 @@ class Player {
         this.camera = new ArcRotateCamera("camera", 0, 1, 7, this.player.position, this.scene);
         this.camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
         this.camera.upperBetaLimit = 1.5;
-        this.camera.alpha = 4.75; // angle of the camera
+        this.camera.alpha = 4.75; // angle of the camera;
         this.camera.lockedTarget = this.player;
 
         this.attachMouseControl();
@@ -61,9 +58,11 @@ class Player {
     // function to attach mouse control
     attachMouseControl() {
         const canvas: HTMLCanvasElement = this.scene.getEngine().getRenderingCanvas();
-        
+
         canvas.addEventListener("click", () => {
             canvas.requestPointerLock();
+            // reset camera position
+            this.camera.alpha = 4.75; // ca marche à moitié a corriger
         });
 
         // mouse move event listener
@@ -91,7 +90,6 @@ class Player {
                 if (key in this.keyStatus) {
                     this.keyStatus[key] = true;
                 }
-                // console.log(this.keyStatus);
             })
         );
 
@@ -106,7 +104,6 @@ class Player {
                 if (key in this.keyStatus) {
                     this.keyStatus[key] = false;
                 }
-                // console.log(this.keyStatus);
             })
         );
     }
@@ -128,12 +125,32 @@ class Player {
                     // move forward
                     this.speed = this.keyStatus["Shift"] ? this.runSpeed : this.walkSpeed; // check if the player is running
                 }
+                // déplacement latéral
+                let lateralSpeed: number = 0;
+                if (this.keyStatus["q"]) {
+                    // move left
+                    this.player.moveWithCollisions(this.player.right.scaleInPlace(this.keyStatus["Shift"] ? -this.runSpeed : -this.walkSpeed));
+                    if (this.keyStatus["z"] || this.keyStatus["s"]) {  
+                        lateralSpeed = this.keyStatus["Shift"] ? -this.runSpeed : -this.walkSpeed;
+                    } else {
+                        return; // prevent moving forward/backward
+                    }
+                }
+                if (this.keyStatus["d"]) {
+                    // move right
+                    this.player.moveWithCollisions(this.player.right.scaleInPlace(this.keyStatus["Shift"] ? this.runSpeed : this.walkSpeed));
+                    if (this.keyStatus["z"] || this.keyStatus["s"]) {  
+                        lateralSpeed = this.keyStatus["Shift"] ? this.runSpeed : this.walkSpeed;
+                    } else {
+                        return; // prevent moving forward/backward
+                    }
+                }
 
                 // move the player
-                let direction: Vector3 = new Vector3(0, 0, this.speed);
+                let direction: Vector3 = new Vector3(lateralSpeed, 0, this.speed);
                 direction = Vector3.TransformNormal(direction, this.player.getWorldMatrix());
                 direction.y = 0;
-                this.player.moveWithCollisions(this.player.forward.scaleInPlace(this.speed));
+                this.player.moveWithCollisions(direction);
             } else if (moving) {
                 // stop the player
                 moving = false;

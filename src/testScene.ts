@@ -3,7 +3,6 @@ import "@babylonjs/inspector";
 import "@babylonjs/loaders/glTF";
 import {
     Scene,
-    ArcRotateCamera,
     Vector3,
     HemisphericLight,
     Mesh,
@@ -18,7 +17,7 @@ class TestScene {
         // light
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
         // ground
-        var ground: Mesh = MeshBuilder.CreateGround("ground", { width: 10, height: 10 }, scene);
+        var ground: Mesh = MeshBuilder.CreateGround("ground", { width: 20, height: 20 }, scene);
 
         // import class Player
         var player = new Player(scene);
