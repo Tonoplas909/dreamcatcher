@@ -11,6 +11,7 @@ import {
     Color3,
     ActionManager,
     ExecuteCodeAction,
+    Space,
 } from "@babylonjs/core";
 
 class Player {
@@ -19,7 +20,11 @@ class Player {
     player: Mesh;
     speed: number;
     camera: ArcRotateCamera;
+
     jumpHeight: number = 1;
+    dashDistance: number = 10;
+    dashCooldown: number = 1.5;
+    private lastDashTime: number = 0; // timestamp of the last dash
     walkSpeed: number = 0.03;
     walkBackSpeed: number = 0.02;
     runSpeed: number = 0.2;
@@ -32,6 +37,8 @@ class Player {
         s: false,
         d: false,
         Shift: false,
+        Space: false,
+        f: false,
     };
 
     constructor(scene: Scene) {
@@ -108,6 +115,15 @@ class Player {
         );
     }
 
+    handleDash() {
+        const currentTime = Date.now();
+        if (currentTime - this.lastDashTime >= this.dashCooldown * 1000) {
+            this.lastDashTime = currentTime;
+            const dashDirection = this.player.forward.scale(this.dashDistance);
+            this.player.moveWithCollisions(dashDirection);
+        }
+    }
+
     // movement player function
     movement() {
         // call the function to handle key events
@@ -157,6 +173,10 @@ class Player {
                 this.speed = 0;
 
                 // TODO: add the stop animation later
+            }
+            // dash movement
+            if (this.keyStatus["f"]) {
+                this.handleDash();
             }
         });
     }
