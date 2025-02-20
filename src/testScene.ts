@@ -19,8 +19,18 @@ class TestScene {
         // ground
         var ground: Mesh = MeshBuilder.CreateGround("ground", { width: 20, height: 20 }, scene);
 
+        // Apply texture to ground
+        var groundMaterial: StandardMaterial = new StandardMaterial("groundMaterial", scene);
+        var groundTexture: Texture = new Texture("/assets/textures/blackPrototype.png", scene);
+        // set the texture scaling
+        groundTexture.uScale = 5
+        groundTexture.vScale = 5;
+
+        groundMaterial.diffuseTexture = groundTexture;
+        ground.material = groundMaterial;
+
         // import class Player
-        var player = new Player(scene);
+        var player: Player = new Player(scene);
 
         // call player movement
         player.movement();

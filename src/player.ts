@@ -11,7 +11,6 @@ import {
     Color3,
     ActionManager,
     ExecuteCodeAction,
-    Space,
 } from "@babylonjs/core";
 
 class Player {
@@ -20,17 +19,21 @@ class Player {
     player: Mesh;
     speed: number;
     camera: ArcRotateCamera;
-
+    // jump
     jumpHeight: number = 1;
+    // dash
     dashDistance: number = 10;
     dashCooldown: number = 1.5;
     private lastDashTime: number = 0; // timestamp of the last dash
+    // movement
     walkSpeed: number = 0.03;
     walkBackSpeed: number = 0.02;
-    runSpeed: number = 0.2;
+    runSpeed: number = 0.1;
+    // camera
     MouseSensitivity: number = 0.01;
     cameraSpeed: number = 0.1;
-    yaw: number = 0;
+    mouseMovement: number = 0;
+    // key status
     keyStatus: { [key: string]: boolean } = {
         z: false,
         q: false,
@@ -43,7 +46,6 @@ class Player {
 
     constructor(scene: Scene) {
         this.scene = scene;
-
         this.player = MeshBuilder.CreateCapsule("player", { height: 1, radius: 0.3 }, this.scene);
         this.player.position.y = 0.5;
 
@@ -68,15 +70,13 @@ class Player {
 
         canvas.addEventListener("click", () => {
             canvas.requestPointerLock();
-            // reset camera position
-            this.camera.alpha = 4.75; // ca marche à moitié a corriger
         });
 
         // mouse move event listener
         document.addEventListener("mousemove", (event) => {
             if (document.pointerLockElement === canvas) {
-                this.yaw += event.movementX * this.MouseSensitivity; // get the movement of the mouse
-                this.player.rotation.y = this.yaw; // rotate the player
+                this.mouseMovement += event.movementX * this.MouseSensitivity; // get the movement of the mouse
+                this.player.rotation.y = this.mouseMovement; // rotate the player
             }
         });
     }
@@ -116,13 +116,13 @@ class Player {
     }
 
     handleDash() {
-        const currentTime = Date.now();
+        const currentTime = Date.now(); // get the current time
         if (currentTime - this.lastDashTime >= this.dashCooldown * 1000) {
             this.lastDashTime = currentTime;
-            const dashDirection = this.player.forward.scale(this.dashDistance);
+            const dashDirection = this.player.forward.scale(this.dashDistance); // get the dash direction
             this.player.moveWithCollisions(dashDirection);
         }
-    }
+    } 
 
     // movement player function
     movement() {
