@@ -11,12 +11,13 @@ import {
     Color3,
     ActionManager,
     ExecuteCodeAction,
+    AssetsManager,
 } from "@babylonjs/core";
 
 class Player {
     // init player variables
     scene: Scene;
-    player: Mesh;
+    player: Mesh | null = null;
     speed: number;
     camera: ArcRotateCamera;
     // jump
@@ -46,22 +47,28 @@ class Player {
 
     constructor(scene: Scene) {
         this.scene = scene;
-        this.player = MeshBuilder.CreateCapsule("player", { height: 1, radius: 0.3 }, this.scene);
-        this.player.position.y = 0.5;
 
-        // material
-        var material = new StandardMaterial("playerMaterial", this.scene);
-        material.diffuseColor = new Color3(1, 0, 0);
-        this.player.material = material;
+        // BUG : le chargement de la camera ou du model ne marche pas encore 
+        const assetManager: AssetsManager = new AssetsManager(this.scene);
+        const meshTask = assetManager.addMeshTask("playerTask", "", "/assets/models/", "playerTest.glb");
 
-        // 3rd person camera
-        this.camera = new ArcRotateCamera("camera", 0, 1, 7, this.player.position, this.scene);
-        this.camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
-        this.camera.upperBetaLimit = 1.5;
-        this.camera.alpha = 4.75; // angle of the camera;
-        this.camera.lockedTarget = this.player;
+        meshTask.onSuccess = (task) => {
+            this.player = task.loadedMeshes[0] as Mesh;
+            this.player.position.y = 1;
+            this.player.scaling.scaleInPlace(0.5);
 
-        this.attachMouseControl();
+            this.camera = new ArcRotateCamera("camera", 0, 1, 7, this.player.position, this.scene);
+            this.camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
+            this.camera.upperBetaLimit = 1.5;
+            this.camera.alpha = 4.75;
+            this.camera.setTarget(this.player);
+        };
+
+        meshTask.onError = (task, message, exception) => {
+            console.log(message, exception);
+        };
+
+        assetManager.load();
     }
 
     // function to attach mouse control
@@ -122,7 +129,7 @@ class Player {
             const dashDirection = this.player.forward.scale(this.dashDistance); // get the dash direction
             this.player.moveWithCollisions(dashDirection);
         }
-    } 
+    }
 
     // movement player function
     movement() {
@@ -145,8 +152,10 @@ class Player {
                 let lateralSpeed: number = 0;
                 if (this.keyStatus["q"]) {
                     // move left
-                    this.player.moveWithCollisions(this.player.right.scaleInPlace(this.keyStatus["Shift"] ? -this.runSpeed : -this.walkSpeed));
-                    if (this.keyStatus["z"] || this.keyStatus["s"]) {  
+                    this.player.moveWithCollisions(
+                        this.player.right.scaleInPlace(this.keyStatus["Shift"] ? -this.runSpeed : -this.walkSpeed)
+                    );
+                    if (this.keyStatus["z"] || this.keyStatus["s"]) {
                         lateralSpeed = this.keyStatus["Shift"] ? -this.runSpeed : -this.walkSpeed;
                     } else {
                         return; // prevent moving forward/backward
@@ -154,8 +163,10 @@ class Player {
                 }
                 if (this.keyStatus["d"]) {
                     // move right
-                    this.player.moveWithCollisions(this.player.right.scaleInPlace(this.keyStatus["Shift"] ? this.runSpeed : this.walkSpeed));
-                    if (this.keyStatus["z"] || this.keyStatus["s"]) {  
+                    this.player.moveWithCollisions(
+                        this.player.right.scaleInPlace(this.keyStatus["Shift"] ? this.runSpeed : this.walkSpeed)
+                    );
+                    if (this.keyStatus["z"] || this.keyStatus["s"]) {
                         lateralSpeed = this.keyStatus["Shift"] ? this.runSpeed : this.walkSpeed;
                     } else {
                         return; // prevent moving forward/backward
