@@ -9,12 +9,13 @@ import {
     MeshBuilder,
     StandardMaterial,
     Texture,
-    ArcRotateCamera,
 } from "@babylonjs/core";
 import { Player } from "./player"; // import of the other class
 
 class TestScene {
     constructor(canvas: HTMLCanvasElement, scene: Scene) {
+        scene.collisionsEnabled = true;
+
         // light
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
         // ground
@@ -26,20 +27,31 @@ class TestScene {
         // set the texture scaling
         groundTexture.uScale = 5
         groundTexture.vScale = 5;
-
         groundMaterial.diffuseTexture = groundTexture;
         ground.material = groundMaterial;
+        ground.checkCollisions = true;
+
+
+        // cube 1
+        var cube1: Mesh = MeshBuilder.CreateBox("cube1", { size: 2 }, scene);
+        cube1.position.y = 1;
+        cube1.position.x = 5;
+        var cubeMaterial: StandardMaterial = new StandardMaterial("cubeMaterial", scene);
+        cubeMaterial.diffuseTexture = new Texture("/assets/textures/greenPrototype.png", scene);
+        cube1.material = cubeMaterial;
+        cube1.checkCollisions = true;
+
+        // plane incline
+        var incline: Mesh = MeshBuilder.CreateGround("incline", { width: 2, height: 2.8 }, scene);
+        incline.rotation.x = Math.PI / 4;
+        incline.position = new Vector3(5, 1, 2);
+        var inclineMaterial: StandardMaterial = new StandardMaterial("inclineMaterial", scene);
+        inclineMaterial.diffuseTexture = new Texture("/assets/textures/greenPrototype.png", scene);
+        incline.material = inclineMaterial;
+        incline.checkCollisions = true;
 
         // import class Player
         var player: Player = new Player(canvas, scene);
-
-        /*
-        if (!scene.activeCamera) {
-            console.warn("⚠️ Aucune caméra trouvée ! Ajout d'une caméra par défaut...");
-            var tempCamera = new ArcRotateCamera("tempCamera", Math.PI / 2, Math.PI / 4, 10, Vector3.Zero(), scene);
-            tempCamera.attachControl(canvas, true);
-            scene.activeCamera = tempCamera;
-        }*/
 
         // call player movement
         player.movement();

@@ -52,7 +52,7 @@ class Player {
         s: false,
         d: false,
         Shift: false,
-        " ": false, // space 
+        " ": false, // space
         f: false,
     };
 
@@ -76,6 +76,12 @@ class Player {
         this.camera.upperBetaLimit = 1.5;
         this.camera.alpha = 4.75; // angle of the camera;
         this.camera.lockedTarget = this.player;
+
+        // collision management
+        this.scene.collisionsEnabled = true;
+        this.player.checkCollisions = true;
+        this.player.ellipsoid = new Vector3(0.3, 0.3, 0.3); // Adjust the size of the collision box
+        this.player.ellipsoidOffset = new Vector3(0, 0.3, 0); // Adjust the offset of the collision box
 
         this.attachMouseControl();
     }
@@ -171,12 +177,12 @@ class Player {
         let moving = false; // check if the player is moving
 
         this.scene.onBeforeRenderObservable.add(() => {
-             // Calculate delta time
-             const deltaTime = this.scene.getEngine().getDeltaTime() / 1000;
+            // Calculate delta time
+            const deltaTime = this.scene.getEngine().getDeltaTime() / 1000;
 
-             // Handle jumping and gravity
-             this.handleJump();
-             this.applyGravity(deltaTime);
+            // Handle jumping and gravity
+            this.handleJump();
+            this.applyGravity(deltaTime);
 
             if (this.keyStatus["z"] || this.keyStatus["q"] || this.keyStatus["s"] || this.keyStatus["d"]) {
                 moving = true;
