@@ -15,26 +15,36 @@ import {
 } from "@babylonjs/core";
 
 class Player {
-    // init player variables
+    // Existing properties
     scene: Scene;
     canvas: HTMLCanvasElement;
     player: Mesh;
     speed: number;
     camera: ArcRotateCamera;
-    // jump
+    life: number = 100;
+
+    // jump properties
     jumpHeight: number = 1;
-    // dash
+    gravity: number = -9.81;
+    verticalVelocity: number = 0;
+    isJumping: boolean = false;
+    isGrounded: boolean = true;
+
+    // dash properties
     dashDistance: number = 10;
     dashCooldown: number = 1.5;
     private lastDashTime: number = 0; // timestamp of the last dash
-    // movement
+
+    // movement properties
     walkSpeed: number = 0.03;
     walkBackSpeed: number = 0.02;
     runSpeed: number = 0.1;
-    // camera
+
+    // camera properties
     MouseSensitivity: number = 0.01;
     cameraSpeed: number = 0.1;
     mouseMovement: number = 0;
+
     // key status
     keyStatus: { [key: string]: boolean } = {
         z: false,
@@ -42,11 +52,11 @@ class Player {
         s: false,
         d: false,
         Shift: false,
-        Space: false,
+        " ": false, // space 
         f: false,
     };
 
-    constructor(canvas:HTMLCanvasElement, scene: Scene) {
+    constructor(canvas: HTMLCanvasElement, scene: Scene) {
         this.scene = scene;
         this.canvas = canvas;
 
@@ -59,15 +69,15 @@ class Player {
         material.diffuseColor = new Color3(1, 0, 0);
         this.player.material = material;
 
-         // 3rd person camera
+        // 3rd person camera
 
-         this.camera = new ArcRotateCamera("camera", 0, 1, 7, this.player.position, this.scene);
-         this.camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
-         this.camera.upperBetaLimit = 1.5;
-         this.camera.alpha = 4.75; // angle of the camera;
-         this.camera.lockedTarget = this.player;
- 
-         this.attachMouseControl();
+        this.camera = new ArcRotateCamera("camera", 0, 1, 7, this.player.position, this.scene);
+        this.camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
+        this.camera.upperBetaLimit = 1.5;
+        this.camera.alpha = 4.75; // angle of the camera;
+        this.camera.lockedTarget = this.player;
+
+        this.attachMouseControl();
     }
 
     // function to attach mouse control
@@ -128,14 +138,46 @@ class Player {
         }
     }
 
+    handleJump() {
+        if (this.isGrounded && this.keyStatus[" "]) {
+            this.verticalVelocity = Math.sqrt(2 * Math.abs(this.gravity) * this.jumpHeight);
+            this.isJumping = true;
+            this.isGrounded = false;
+        }
+    }
+
+    applyGravity(deltaTime: number) {
+        // Apply gravity to vertical velocity
+        this.verticalVelocity += this.gravity * deltaTime;
+
+        // Update position based on vertical velocity
+        let verticalMovement = new Vector3(0, this.verticalVelocity * deltaTime, 0);
+        this.player.moveWithCollisions(verticalMovement);
+
+        // Check if player is on the ground (y position <= initial height)
+        if (this.player.position.y <= 0.5) {
+            // 0.5 is the initial height
+            this.player.position.y = 0.5;
+            this.verticalVelocity = 0;
+            this.isGrounded = true;
+            this.isJumping = false;
+        }
+    }
+
     // movement player function
     movement() {
         // call the function to handle key events
         this.handleKeyEvents();
-
         let moving = false; // check if the player is moving
 
         this.scene.onBeforeRenderObservable.add(() => {
+             // Calculate delta time
+             const deltaTime = this.scene.getEngine().getDeltaTime() / 1000;
+
+             // Handle jumping and gravity
+             this.handleJump();
+             this.applyGravity(deltaTime);
+
             if (this.keyStatus["z"] || this.keyStatus["q"] || this.keyStatus["s"] || this.keyStatus["d"]) {
                 moving = true;
                 if (this.keyStatus["s"] && !this.keyStatus["z"]) {
