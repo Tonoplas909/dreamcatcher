@@ -17,7 +17,8 @@ import {
 class Player {
     // init player variables
     scene: Scene;
-    player: Mesh | null = null;
+    canvas: HTMLCanvasElement;
+    player: Mesh;
     speed: number;
     camera: ArcRotateCamera;
     // jump
@@ -45,43 +46,39 @@ class Player {
         f: false,
     };
 
-    constructor(scene: Scene) {
+    constructor(canvas:HTMLCanvasElement, scene: Scene) {
         this.scene = scene;
+        this.canvas = canvas;
 
-        // BUG : le chargement de la camera ou du model ne marche pas encore 
-        const assetManager: AssetsManager = new AssetsManager(this.scene);
-        const meshTask = assetManager.addMeshTask("playerTask", "", "/assets/models/", "playerTest.glb");
+        // create the player
+        this.player = MeshBuilder.CreateCapsule("player", { height: 1, radius: 0.3 }, this.scene);
+        this.player.position.y = 0.5;
 
-        meshTask.onSuccess = (task) => {
-            this.player = task.loadedMeshes[0] as Mesh;
-            this.player.position.y = 1;
-            this.player.scaling.scaleInPlace(0.5);
+        // material
+        var material = new StandardMaterial("playerMaterial", this.scene);
+        material.diffuseColor = new Color3(1, 0, 0);
+        this.player.material = material;
 
-            this.camera = new ArcRotateCamera("camera", 0, 1, 7, this.player.position, this.scene);
-            this.camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
-            this.camera.upperBetaLimit = 1.5;
-            this.camera.alpha = 4.75;
-            this.camera.setTarget(this.player);
-        };
+         // 3rd person camera
 
-        meshTask.onError = (task, message, exception) => {
-            console.log(message, exception);
-        };
-
-        assetManager.load();
+         this.camera = new ArcRotateCamera("camera", 0, 1, 7, this.player.position, this.scene);
+         this.camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
+         this.camera.upperBetaLimit = 1.5;
+         this.camera.alpha = 4.75; // angle of the camera;
+         this.camera.lockedTarget = this.player;
+ 
+         this.attachMouseControl();
     }
 
     // function to attach mouse control
     attachMouseControl() {
-        const canvas: HTMLCanvasElement = this.scene.getEngine().getRenderingCanvas();
-
-        canvas.addEventListener("click", () => {
-            canvas.requestPointerLock();
+        this.canvas.addEventListener("click", () => {
+            this.canvas.requestPointerLock();
         });
 
         // mouse move event listener
         document.addEventListener("mousemove", (event) => {
-            if (document.pointerLockElement === canvas) {
+            if (document.pointerLockElement === this.canvas) {
                 this.mouseMovement += event.movementX * this.MouseSensitivity; // get the movement of the mouse
                 this.player.rotation.y = this.mouseMovement; // rotate the player
             }

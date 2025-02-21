@@ -9,6 +9,7 @@ import {
     MeshBuilder,
     StandardMaterial,
     Texture,
+    ArcRotateCamera,
 } from "@babylonjs/core";
 import { Player } from "./player"; // import of the other class
 
@@ -30,7 +31,15 @@ class TestScene {
         ground.material = groundMaterial;
 
         // import class Player
-        var player: Player = new Player(scene);
+        var player: Player = new Player(canvas, scene);
+
+        /*
+        if (!scene.activeCamera) {
+            console.warn("⚠️ Aucune caméra trouvée ! Ajout d'une caméra par défaut...");
+            var tempCamera = new ArcRotateCamera("tempCamera", Math.PI / 2, Math.PI / 4, 10, Vector3.Zero(), scene);
+            tempCamera.attachControl(canvas, true);
+            scene.activeCamera = tempCamera;
+        }*/
 
         // call player movement
         player.movement();
