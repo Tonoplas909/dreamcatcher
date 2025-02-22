@@ -63,6 +63,11 @@ class Player {
         this.scene = scene;
         this.canvas = canvas;
 
+        // initialize key status
+        for (const key in this.keyBindings) {
+            this.keyStatus[this.keyBindings[key]] = false;
+        }
+
         // create the player
         this.player = MeshBuilder.CreateCapsule("player", { height: 1, radius: 0.3 }, this.scene);
         this.player.position.y = 0.5;
@@ -113,7 +118,7 @@ class Player {
         this.scene.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnKeyDownTrigger, (event) => {
                 let key = event.sourceEvent.key; // get the key
-                if (key !== "Shift") {
+                if (key !== this.keyBindings.run) {
                     key = key.toLowerCase();
                 }
                 // check if the key is in the table
@@ -127,7 +132,7 @@ class Player {
         this.scene.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnKeyUpTrigger, (event) => {
                 let key = event.sourceEvent.key; // get the key
-                if (key !== "Shift") {
+                if (key !== this.keyBindings.run) {
                     key = key.toLowerCase();
                 }
                 // check if the key is in the table
@@ -148,7 +153,7 @@ class Player {
     }
 
     handleJump() {
-        if (this.isGrounded && this.keyStatus[" "]) {
+        if (this.isGrounded && this.keyStatus[this.keyBindings.jump]) {
             this.verticalVelocity = Math.sqrt(2 * Math.abs(this.gravity) * this.jumpHeight);
             this.isJumping = true;
             this.isGrounded = false;
@@ -187,44 +192,42 @@ class Player {
             this.handleJump();
             this.applyGravity(deltaTime);
 
-            if (this.keyStatus["z"] || this.keyStatus["q"] || this.keyStatus["s"] || this.keyStatus["d"]) {
+            if (
+                this.keyStatus[this.keyBindings.forward] ||
+                this.keyStatus[this.keyBindings.left] ||
+                this.keyStatus[this.keyBindings.backward] ||
+                this.keyStatus[this.keyBindings.right]
+            ) {
                 moving = true;
-                if (this.keyStatus["s"] && !this.keyStatus["z"]) {
-                    // move backward
-                    this.speed = -this.walkBackSpeed;
-                } else if (this.keyStatus["z"] || this.keyStatus["q"] || this.keyStatus["d"]) {
-                    // move forward
-                    this.speed = this.keyStatus["Shift"] ? this.runSpeed : this.walkSpeed; // check if the player is running
+                let forward = this.camera.getForwardRay().direction;
+                forward.y = 0;
+                forward.normalize();
+
+                let right = Vector3.Cross(forward, Vector3.Up());
+                right.normalize();
+
+                let direction = new Vector3();
+
+                if (this.keyStatus[this.keyBindings.forward]) {
+                    direction.addInPlace(forward);
                 }
-                // déplacement latéral
-                let lateralSpeed: number = 0;
-                if (this.keyStatus["q"]) {
-                    // move left
-                    this.player.moveWithCollisions(
-                        this.player.right.scaleInPlace(this.keyStatus["Shift"] ? -this.runSpeed : -this.walkSpeed)
-                    );
-                    if (this.keyStatus["z"] || this.keyStatus["s"]) {
-                        lateralSpeed = this.keyStatus["Shift"] ? -this.runSpeed : -this.walkSpeed;
-                    } else {
-                        return; // prevent moving forward/backward
-                    }
+                if (this.keyStatus[this.keyBindings.backward]) {
+                    direction.addInPlace(forward.scale(-1));
                 }
-                if (this.keyStatus["d"]) {
-                    // move right
-                    this.player.moveWithCollisions(
-                        this.player.right.scaleInPlace(this.keyStatus["Shift"] ? this.runSpeed : this.walkSpeed)
-                    );
-                    if (this.keyStatus["z"] || this.keyStatus["s"]) {
-                        lateralSpeed = this.keyStatus["Shift"] ? this.runSpeed : this.walkSpeed;
-                    } else {
-                        return; // prevent moving forward/backward
-                    }
+                if (this.keyStatus[this.keyBindings.left]) {
+                    direction.addInPlace(right);
+                }
+                if (this.keyStatus[this.keyBindings.right]) {
+                    direction.addInPlace(right.scale(-1));
                 }
 
-                // move the player
-                let direction: Vector3 = new Vector3(lateralSpeed, 0, this.speed);
-                direction = Vector3.TransformNormal(direction, this.player.getWorldMatrix());
-                direction.y = 0;
+                // Normalize the direction to avoid speed addition
+                direction.normalize();
+
+                // Apply the appropriate speed
+                const speed = this.keyStatus[this.keyBindings.run] ? this.runSpeed : this.walkSpeed;
+                direction.scaleInPlace(speed);
+
                 this.player.moveWithCollisions(direction);
             } else if (moving) {
                 // stop the player
@@ -234,7 +237,7 @@ class Player {
                 // TODO: add the stop animation later
             }
             // dash movement
-            if (this.keyStatus["f"]) {
+            if (this.keyStatus[this.keyBindings.dash]) {
                 this.handleDash();
             }
         });
