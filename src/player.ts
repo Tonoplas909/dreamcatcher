@@ -78,7 +78,6 @@ class Player {
         this.player.material = material;
 
         // 3rd person camera
-
         this.camera = new ArcRotateCamera("camera", 0, 1, 7, this.player.position, this.scene);
         this.camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
         this.camera.upperBetaLimit = 1.5;
