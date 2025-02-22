@@ -147,8 +147,24 @@ class Player {
         const currentTime = Date.now(); // get the current time
         if (currentTime - this.lastDashTime >= this.dashCooldown * 1000) {
             this.lastDashTime = currentTime;
-            const dashDirection = this.player.forward.scale(this.dashDistance); // get the dash direction
-            this.player.moveWithCollisions(dashDirection);
+            const dashDirection = this.camera.getForwardRay().direction; // get the dash direction
+            dashDirection.y = 0; // keep the dash direction horizontal
+            dashDirection.normalize();
+            dashDirection.scaleInPlace(this.dashDistance / 10); // scale down the dash distance
+
+            const dashDuration = 0.2; // duration of the dash in seconds
+            const dashSpeed = this.dashDistance / dashDuration / 10; // scale down the dash speed
+
+            const dashStartTime = currentTime;
+            this.scene.onBeforeRenderObservable.add(() => {
+                const elapsedTime = (Date.now() - dashStartTime) / 1000;
+                if (elapsedTime < dashDuration) {
+                    const dashMovement = dashDirection.scale(
+                        (dashSpeed * this.scene.getEngine().getDeltaTime()) / 1000
+                    );
+                    this.player.moveWithCollisions(dashMovement);
+                }
+            });
         }
     }
 
