@@ -31,30 +31,33 @@ class Player {
     isGrounded: boolean = true;
 
     // dash properties
-    dashDistance: number = 10;
+    dashDistance: number = 25;
     dashCooldown: number = 1.5;
     private lastDashTime: number = 0; // timestamp of the last dash
 
     // movement properties
-    walkSpeed: number = 0.03;
-    walkBackSpeed: number = 0.02;
-    runSpeed: number = 0.1;
+    walkSpeed: number = 0.25;
+    walkBackSpeed: number = 0.2;
+    runSpeed: number = 0.4;
 
     // camera properties
     MouseSensitivity: number = 0.01;
     cameraSpeed: number = 0.1;
     mouseMovement: number = 0;
 
-    // key status
-    keyStatus: { [key: string]: boolean } = {
-        z: false,
-        q: false,
-        s: false,
-        d: false,
-        Shift: false,
-        " ": false, // space
-        f: false,
+    // key bindings
+    keyBindings = {
+        forward: "z",
+        backward: "s",
+        left: "q",
+        right: "d",
+        run: "Shift",
+        jump: " ",
+        dash: "f",
     };
+
+    // key status
+    keyStatus: { [key: string]: boolean } = {};
 
     constructor(canvas: HTMLCanvasElement, scene: Scene) {
         this.scene = scene;
