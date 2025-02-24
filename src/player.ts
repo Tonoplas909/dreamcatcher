@@ -67,15 +67,11 @@ class Player {
         for (const key in this.keyBindings) {
             this.keyStatus[this.keyBindings[key]] = false;
         }
-
         // create the player
-        this.player = MeshBuilder.CreateCapsule("player", { height: 1, radius: 0.3 }, this.scene);
-        this.player.position.y = 0.5;
+        this.player = MeshBuilder.CreateCapsule("player", { height: 2.5, radius: 0.3 }, this.scene);
+        this.player.isVisible = false;
 
-        // material
-        var material = new StandardMaterial("playerMaterial", this.scene);
-        material.diffuseColor = new Color3(1, 0, 0);
-        this.player.material = material;
+        this.loadPlayerModel();
 
         // 3rd person camera
         this.camera = new ArcRotateCamera("camera", 0, 1, 7, this.player.position, this.scene);
@@ -91,6 +87,29 @@ class Player {
         this.player.ellipsoidOffset = new Vector3(0, 0.3, 0); // Adjust the offset of the collision box
 
         this.attachMouseControl();
+    }
+
+    // function to load the model glb of the player
+    loadPlayerModel() {
+        const assetsManager = new AssetsManager(this.scene);
+        const meshTask = assetsManager.addMeshTask("player task", "", "/assets/models/", "playerTest.glb");
+
+        meshTask.onSuccess = (task) => {
+            const playerModel = task.loadedMeshes[0] as Mesh;
+            playerModel.parent = this.player; // Attach the model to the player hitbox
+            playerModel.position = Vector3.Zero(); // Reset position relative to the parent
+
+            // scale the model
+            playerModel.scaling = new Vector3(0.2, 0.2, 0.2);
+            playerModel.rotate(Vector3.Up(), Math.PI); // Rotate the model 180 degrees
+            playerModel.position.y = -0.5; // Adjust the position of the model
+        };
+
+        meshTask.onError = (task, message, exception) => {
+            console.error(message, exception);
+        };
+
+        assetsManager.load();
     }
 
     // function to attach mouse control
