@@ -1,6 +1,6 @@
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
-import "@babylonjs/loaders/glTF";
+import "@babylonjs/loaders";
 import {
     Scene,
     Vector3,
@@ -42,9 +42,6 @@ class TestScene {
 
         // import class Player
         const player: Player = new Player(canvas, scene);
-
-        // call player movement
-        player.movement();
     }
 }
 
