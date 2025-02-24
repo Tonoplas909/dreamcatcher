@@ -31,34 +31,42 @@ class Player {
     isGrounded: boolean = true;
 
     // dash properties
-    dashDistance: number = 10;
+    dashDistance: number = 25;
     dashCooldown: number = 1.5;
     private lastDashTime: number = 0; // timestamp of the last dash
 
     // movement properties
-    walkSpeed: number = 0.03;
-    walkBackSpeed: number = 0.02;
-    runSpeed: number = 0.1;
+    walkSpeed: number = 0.25;
+    walkBackSpeed: number = 0.2;
+    runSpeed: number = 0.4;
 
     // camera properties
     MouseSensitivity: number = 0.01;
     cameraSpeed: number = 0.1;
     mouseMovement: number = 0;
 
-    // key status
-    keyStatus: { [key: string]: boolean } = {
-        z: false,
-        q: false,
-        s: false,
-        d: false,
-        Shift: false,
-        " ": false, // space
-        f: false,
+    // key bindings
+    keyBindings = {
+        forward: "z",
+        backward: "s",
+        left: "q",
+        right: "d",
+        run: "Shift",
+        jump: " ",
+        dash: "f",
     };
+
+    // key status
+    keyStatus: { [key: string]: boolean } = {};
 
     constructor(canvas: HTMLCanvasElement, scene: Scene) {
         this.scene = scene;
         this.canvas = canvas;
+
+        // initialize key status
+        for (const key in this.keyBindings) {
+            this.keyStatus[this.keyBindings[key]] = false;
+        }
 
         // create the player
         this.player = MeshBuilder.CreateCapsule("player", { height: 1, radius: 0.3 }, this.scene);
@@ -70,7 +78,6 @@ class Player {
         this.player.material = material;
 
         // 3rd person camera
-
         this.camera = new ArcRotateCamera("camera", 0, 1, 7, this.player.position, this.scene);
         this.camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
         this.camera.upperBetaLimit = 1.5;
@@ -110,7 +117,7 @@ class Player {
         this.scene.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnKeyDownTrigger, (event) => {
                 let key = event.sourceEvent.key; // get the key
-                if (key !== "Shift") {
+                if (key !== this.keyBindings.run) {
                     key = key.toLowerCase();
                 }
                 // check if the key is in the table
@@ -124,7 +131,7 @@ class Player {
         this.scene.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnKeyUpTrigger, (event) => {
                 let key = event.sourceEvent.key; // get the key
-                if (key !== "Shift") {
+                if (key !== this.keyBindings.run) {
                     key = key.toLowerCase();
                 }
                 // check if the key is in the table
@@ -139,13 +146,29 @@ class Player {
         const currentTime = Date.now(); // get the current time
         if (currentTime - this.lastDashTime >= this.dashCooldown * 1000) {
             this.lastDashTime = currentTime;
-            const dashDirection = this.player.forward.scale(this.dashDistance); // get the dash direction
-            this.player.moveWithCollisions(dashDirection);
+            const dashDirection = this.camera.getForwardRay().direction; // get the dash direction
+            dashDirection.y = 0; // keep the dash direction horizontal
+            dashDirection.normalize();
+            dashDirection.scaleInPlace(this.dashDistance / 10); // scale down the dash distance
+
+            const dashDuration = 0.2; // duration of the dash in seconds
+            const dashSpeed = this.dashDistance / dashDuration / 10; // scale down the dash speed
+
+            const dashStartTime = currentTime;
+            this.scene.onBeforeRenderObservable.add(() => {
+                const elapsedTime = (Date.now() - dashStartTime) / 1000;
+                if (elapsedTime < dashDuration) {
+                    const dashMovement = dashDirection.scale(
+                        (dashSpeed * this.scene.getEngine().getDeltaTime()) / 1000
+                    );
+                    this.player.moveWithCollisions(dashMovement);
+                }
+            });
         }
     }
 
     handleJump() {
-        if (this.isGrounded && this.keyStatus[" "]) {
+        if (this.isGrounded && this.keyStatus[this.keyBindings.jump]) {
             this.verticalVelocity = Math.sqrt(2 * Math.abs(this.gravity) * this.jumpHeight);
             this.isJumping = true;
             this.isGrounded = false;
@@ -184,44 +207,42 @@ class Player {
             this.handleJump();
             this.applyGravity(deltaTime);
 
-            if (this.keyStatus["z"] || this.keyStatus["q"] || this.keyStatus["s"] || this.keyStatus["d"]) {
+            if (
+                this.keyStatus[this.keyBindings.forward] ||
+                this.keyStatus[this.keyBindings.left] ||
+                this.keyStatus[this.keyBindings.backward] ||
+                this.keyStatus[this.keyBindings.right]
+            ) {
                 moving = true;
-                if (this.keyStatus["s"] && !this.keyStatus["z"]) {
-                    // move backward
-                    this.speed = -this.walkBackSpeed;
-                } else if (this.keyStatus["z"] || this.keyStatus["q"] || this.keyStatus["d"]) {
-                    // move forward
-                    this.speed = this.keyStatus["Shift"] ? this.runSpeed : this.walkSpeed; // check if the player is running
+                let forward = this.camera.getForwardRay().direction;
+                forward.y = 0;
+                forward.normalize();
+
+                let right = Vector3.Cross(forward, Vector3.Up());
+                right.normalize();
+
+                let direction = new Vector3();
+
+                if (this.keyStatus[this.keyBindings.forward]) {
+                    direction.addInPlace(forward);
                 }
-                // déplacement latéral
-                let lateralSpeed: number = 0;
-                if (this.keyStatus["q"]) {
-                    // move left
-                    this.player.moveWithCollisions(
-                        this.player.right.scaleInPlace(this.keyStatus["Shift"] ? -this.runSpeed : -this.walkSpeed)
-                    );
-                    if (this.keyStatus["z"] || this.keyStatus["s"]) {
-                        lateralSpeed = this.keyStatus["Shift"] ? -this.runSpeed : -this.walkSpeed;
-                    } else {
-                        return; // prevent moving forward/backward
-                    }
+                if (this.keyStatus[this.keyBindings.backward]) {
+                    direction.addInPlace(forward.scale(-1));
                 }
-                if (this.keyStatus["d"]) {
-                    // move right
-                    this.player.moveWithCollisions(
-                        this.player.right.scaleInPlace(this.keyStatus["Shift"] ? this.runSpeed : this.walkSpeed)
-                    );
-                    if (this.keyStatus["z"] || this.keyStatus["s"]) {
-                        lateralSpeed = this.keyStatus["Shift"] ? this.runSpeed : this.walkSpeed;
-                    } else {
-                        return; // prevent moving forward/backward
-                    }
+                if (this.keyStatus[this.keyBindings.left]) {
+                    direction.addInPlace(right);
+                }
+                if (this.keyStatus[this.keyBindings.right]) {
+                    direction.addInPlace(right.scale(-1));
                 }
 
-                // move the player
-                let direction: Vector3 = new Vector3(lateralSpeed, 0, this.speed);
-                direction = Vector3.TransformNormal(direction, this.player.getWorldMatrix());
-                direction.y = 0;
+                // Normalize the direction to avoid speed addition
+                direction.normalize();
+
+                // Apply the appropriate speed
+                const speed = this.keyStatus[this.keyBindings.run] ? this.runSpeed : this.walkSpeed;
+                direction.scaleInPlace(speed);
+
                 this.player.moveWithCollisions(direction);
             } else if (moving) {
                 // stop the player
@@ -231,7 +252,7 @@ class Player {
                 // TODO: add the stop animation later
             }
             // dash movement
-            if (this.keyStatus["f"]) {
+            if (this.keyStatus[this.keyBindings.dash]) {
                 this.handleDash();
             }
         });
