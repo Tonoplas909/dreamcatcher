@@ -1,7 +1,18 @@
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders/glTF";
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Mesh, MeshBuilder } from "@babylonjs/core";
+import {
+    Engine,
+    Scene,
+    ArcRotateCamera,
+    Vector3,
+    HemisphericLight,
+    Mesh,
+    MeshBuilder,
+    Material,
+    StandardMaterial,
+} from "@babylonjs/core";
+import { TestScene } from "./testScene"; // import of the other class
 
 class App {
     constructor() {
@@ -16,10 +27,13 @@ class App {
         var engine = new Engine(canvas, true);
         var scene = new Scene(engine);
 
-        var camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), scene);
-        camera.attachControl(canvas, true);
-        var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
-        var sphere: Mesh = MeshBuilder.CreateSphere("sphere", { diameter: 1 }, scene);
+        // import class TestScene
+        var testScene = new TestScene(canvas, scene);
+
+        // request pointer lock on canvas click
+        canvas.addEventListener("click", () => {
+            canvas.requestPointerLock();
+        });
 
         // hide/show the Inspector
         window.addEventListener("keydown", (ev) => {
