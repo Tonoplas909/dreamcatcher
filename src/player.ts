@@ -4,7 +4,6 @@ import "@babylonjs/loaders";
 import { Scene, ArcRotateCamera, Mesh, MeshBuilder } from "@babylonjs/core";
 import { PlayerMovement } from "./playerMovement";
 import { PlayerAction } from "./playerAction";
-import { PlayerCamera } from "./playerCamera";
 import { PlayerModel } from "./playerModel";
 
 class Player {
