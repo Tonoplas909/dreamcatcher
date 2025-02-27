@@ -1,16 +1,9 @@
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders";
-import {
-    Scene,
-    Vector3,
-    HemisphericLight,
-    Mesh,
-    MeshBuilder,
-    StandardMaterial,
-    Texture,
-} from "@babylonjs/core";
+import { Scene, Vector3, HemisphericLight, Mesh, MeshBuilder, StandardMaterial, Texture } from "@babylonjs/core";
 import { Player } from "./player"; // import of the other class
+import { Monster } from "./monster";
 
 class TestScene {
     constructor(canvas: HTMLCanvasElement, scene: Scene) {
@@ -18,7 +11,7 @@ class TestScene {
 
         // light
         new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
-        
+
         // ground
         const ground: Mesh = MeshBuilder.CreateGround("ground", { width: 20, height: 20 }, scene);
 
@@ -42,6 +35,17 @@ class TestScene {
 
         // import class Player
         const player: Player = new Player(canvas, scene);
+
+        // import class Monster
+        const scab: Monster = new Monster(
+            canvas,
+            scene,
+            "scab",
+            new Vector3(0, 0, 2),
+            new Vector3(0, 0, 0),
+            new Vector3(2, 2, 2),
+            { width: 1.5, height: 1.5, depth: 1.5}
+        );
     }
 }
 
