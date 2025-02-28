@@ -41,10 +41,10 @@ class TestScene {
             canvas,
             scene,
             "scab",
-            new Vector3(0, 0, 2),
-            new Vector3(0, 0, 0),
-            new Vector3(2, 2, 2),
-            { width: 1.5, height: 1.5, depth: 1.5}
+            new Vector3(3, 0, 5),
+            new Vector3(0, 5, 0),
+            new Vector3(3, 3, 3),
+            { width: 2.5, height: 2.5, depth: 2 }
         );
     }
 }

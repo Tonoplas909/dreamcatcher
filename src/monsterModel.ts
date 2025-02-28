@@ -30,9 +30,7 @@ class MonsterModel {
             monsterModel.parent = this.monsterInstance.monster; // Attach the model to the monster hitbox
 
             // parameter
-            monsterModel.position = this.monsterInstance.monsterPosition.clone();
-            monsterModel.rotation = this.monsterInstance.monsterRotation.clone();
-            monsterModel.scaling = this.monsterInstance.monsterScaling.clone();
+            monsterModel.scaling = this.monsterInstance.monsterScaling;
         };
 
         meshTask.onError = (task, message, exception) => {

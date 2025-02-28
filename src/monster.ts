@@ -36,7 +36,8 @@ class Monster {
         // création de la hitbox
         this.monster = MeshBuilder.CreateBox("monsterHitbox", this.monsterHitbox, this.scene);
         this.monster.isVisible = true; // Masquer la hitbox
-        this.monster.position = this.monsterPosition.clone(); //TODO: voir pour faire en sorte que la hitbox soit à la bonne position par rapport au model
+        this.monster.position = this.monsterPosition;
+        this.monster.rotation = this.monsterRotation;
 
         // hitbox material
         const monsterHitBoxMaterial = new StandardMaterial("monsterHitBoxMat", this.scene);
