@@ -36,9 +36,9 @@ class Player {
     private lastDashTime: number = 0; // timestamp of the last dash
 
     // movement properties
-    walkSpeed: number = 0.25;
-    walkBackSpeed: number = 0.2;
-    runSpeed: number = 0.4;
+    walkSpeed: number = 0.15;
+    walkBackSpeed: number = 0.1;
+    runSpeed: number = 0.25;
 
     // camera properties
     MouseSensitivity: number = 0.01;
@@ -54,10 +54,15 @@ class Player {
         run: "Shift",
         jump: " ",
         dash: "f",
+        pause: "g"
     };
 
     // key status
     keyStatus: { [key: string]: boolean } = {};
+
+    // pause properties
+    isPaused: boolean = false;
+    pauseMenu: HTMLDivElement;
 
     constructor(canvas: HTMLCanvasElement, scene: Scene) {
         this.scene = scene;
@@ -91,6 +96,7 @@ class Player {
         this.player.ellipsoidOffset = new Vector3(0, 0.3, 0); // Adjust the offset of the collision box
 
         this.attachMouseControl();
+        this.createPauseMenu();
     }
 
     // function to attach mouse control
@@ -106,6 +112,39 @@ class Player {
                 this.player.rotation.y = this.mouseMovement; // rotate the player
             }
         });
+    }
+
+    createPauseMenu() {
+        this.pauseMenu = document.createElement("div");
+        this.pauseMenu.style.position = "absolute";
+        this.pauseMenu.style.top = "50%";
+        this.pauseMenu.style.left = "50%";
+        this.pauseMenu.style.transform = "translate(-50%, -50%)";
+        this.pauseMenu.style.padding = "20px";
+        this.pauseMenu.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+        this.pauseMenu.style.color = "white";
+        this.pauseMenu.style.display = "none";
+        this.pauseMenu.innerHTML = "<h1>Paused</h1><button id='resumeButton'>Resume</button>";
+        document.body.appendChild(this.pauseMenu);
+
+        document.getElementById("resumeButton").addEventListener("click", () => {
+            this.togglePause();
+        });
+    }
+
+    togglePause() {
+        this.isPaused = !this.isPaused;
+        if (this.isPaused) {
+            this.pauseMenu.style.display = "block";
+            this.scene.getEngine().stopRenderLoop();
+            document.exitPointerLock(); // Unlock the cursor
+        } else {
+            this.pauseMenu.style.display = "none";
+            this.scene.getEngine().runRenderLoop(() => {
+                this.scene.render();
+            });
+            this.canvas.requestPointerLock(); // Lock the cursor back
+        }
     }
 
     // function to handle key events
@@ -137,6 +176,22 @@ class Player {
                 // check if the key is in the table
                 if (key in this.keyStatus) {
                     this.keyStatus[key] = false;
+                }
+            })
+        );
+
+        this.scene.actionManager.registerAction(
+            new ExecuteCodeAction(ActionManager.OnKeyDownTrigger, (event) => {
+                let key = event.sourceEvent.key; // get the key
+                if (key === this.keyBindings.pause) {
+                    this.togglePause();
+                }
+                if (key !== this.keyBindings.run) {
+                    key = key.toLowerCase();
+                }
+                // check if the key is in the table
+                if (key in this.keyStatus) {
+                    this.keyStatus[key] = true;
                 }
             })
         );
@@ -240,7 +295,7 @@ class Player {
                 direction.normalize();
 
                 // Apply the appropriate speed
-                const speed = this.keyStatus[this.keyBindings.run] ? this.runSpeed : this.walkSpeed;
+                const speed = this.keyStatus[this.keyBindings.run] ? this.runSpeed : this.keyStatus[this.keyBindings.backward] ? this.walkBackSpeed : this.walkSpeed;
                 direction.scaleInPlace(speed);
 
                 this.player.moveWithCollisions(direction);
