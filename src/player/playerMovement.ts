@@ -1,7 +1,7 @@
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders";
-import { Vector3 } from "@babylonjs/core";
+import { Vector3, Scalar } from "@babylonjs/core";
 import { Player } from "./player";
 
 class PlayerMovement {
@@ -19,6 +19,16 @@ class PlayerMovement {
     private dashCooldown = 1.5;
     private lastDashTime = 0;
 
+    private bindings = {
+        forward: "z",
+        backward: "s",
+        left: "q",
+        right: "d",
+        run: "shift",
+        jump: " ",
+        dash: "f",
+    };
+
     constructor(playerInstance: Player) {
         this.playerInstance = playerInstance;
     }
@@ -30,18 +40,8 @@ class PlayerMovement {
     }
 
     private setupKeyListeners() {
-        const bindings = {
-            forward: "z",
-            backward: "s",
-            left: "q",
-            right: "d",
-            run: "shift",
-            jump: " ",
-            dash: "f",
-        };
-
-        for (const key in bindings) {
-            this.keyStatus[bindings[key]] = false;
+        for (const key in this.bindings) {
+            this.keyStatus[this.bindings[key]] = false;
         }
 
         window.addEventListener("keydown", (event) => {
@@ -60,34 +60,36 @@ class PlayerMovement {
 
     private update() {
         const deltaTime = this.playerInstance.scene.getEngine().getDeltaTime() / 1000;
-        this.handleMovement();
+        this.handleMovement(deltaTime);
         this.handleJump();
         this.applyGravity(deltaTime);
-        if (this.keyStatus["f"]) this.handleDash();
+        if (this.keyStatus[this.bindings.dash]) this.handleDash();
     }
 
-    private handleMovement() {
+    private handleMovement(deltaTime: number) {
         const { camera, player } = this.playerInstance;
         let direction = new Vector3();
 
-        if (this.keyStatus["z"]) direction.addInPlace(camera.getForwardRay().direction);
-        if (this.keyStatus["s"]) direction.addInPlace(camera.getForwardRay().direction.scale(-1));
-        if (this.keyStatus["q"]) direction.addInPlace(Vector3.Cross(camera.getForwardRay().direction, Vector3.Up()));
-        if (this.keyStatus["d"]) direction.addInPlace(Vector3.Cross(camera.getForwardRay().direction, Vector3.Up()).scale(-1));
+        if (this.keyStatus[this.bindings.forward]) direction.addInPlace(camera.getForwardRay().direction);
+        if (this.keyStatus[this.bindings.backward]) direction.addInPlace(camera.getForwardRay().direction.scale(-1));
+        if (this.keyStatus[this.bindings.left]) direction.addInPlace(Vector3.Cross(camera.getForwardRay().direction, Vector3.Up()));
+        if (this.keyStatus[this.bindings.right]) direction.addInPlace(Vector3.Cross(camera.getForwardRay().direction, Vector3.Up()).scale(-1));
 
         direction.y = 0;
         direction.normalize();
 
-        if (direction.length() > 0) {
-            player.rotation.y = Math.atan2(direction.x, direction.z);
-        }
+        // Align player rotation with camera direction
+        const cameraDirection = camera.getForwardRay().direction;
+        cameraDirection.y = 0;
+        cameraDirection.normalize();
+        const targetRotationY = Math.atan2(cameraDirection.x, cameraDirection.z);
+        player.rotation.y = targetRotationY;
 
-        const speed = this.keyStatus["shift"] ? this.runSpeed : this.walkSpeed;
+        const speed = this.keyStatus[this.bindings.run] ? this.runSpeed : this.walkSpeed;
         direction.scaleInPlace(speed);
 
         player.moveWithCollisions(direction);
     }
-
 
     private applyGravity(deltaTime: number) {
         this.verticalVelocity += this.gravity * deltaTime;
@@ -103,7 +105,7 @@ class PlayerMovement {
     }
 
     private handleJump() {
-        if (this.isGrounded && this.keyStatus[" "]) {
+        if (this.isGrounded && this.keyStatus[this.bindings.jump]) {
             this.verticalVelocity = Math.sqrt(2 * Math.abs(this.gravity) * this.jumpHeight);
             this.isJumping = true;
             this.isGrounded = false;
