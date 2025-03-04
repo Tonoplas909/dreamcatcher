@@ -2,8 +2,8 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders";
 import { Scene, Vector3, HemisphericLight, Mesh, MeshBuilder, StandardMaterial, Texture } from "@babylonjs/core";
-import { Player } from "./player"; // import of the other class
-import { Monster } from "./monster";
+import { Player } from "./player/player"; // import of the other class
+import { Monster } from "./monster/monster";
 
 class TestScene {
     constructor(canvas: HTMLCanvasElement, scene: Scene) {

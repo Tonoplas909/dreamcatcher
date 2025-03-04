@@ -28,7 +28,7 @@ class PlayerMovement {
         this.setupCollision();
         this.playerInstance.scene.onBeforeRenderObservable.add(() => this.update());
     }
-    
+
     private setupKeyListeners() {
         const bindings = {
             forward: "z",
@@ -78,11 +78,16 @@ class PlayerMovement {
         direction.y = 0;
         direction.normalize();
 
+        if (direction.length() > 0) {
+            player.rotation.y = Math.atan2(direction.x, direction.z);
+        }
+
         const speed = this.keyStatus["shift"] ? this.runSpeed : this.walkSpeed;
         direction.scaleInPlace(speed);
 
         player.moveWithCollisions(direction);
     }
+
 
     private applyGravity(deltaTime: number) {
         this.verticalVelocity += this.gravity * deltaTime;
@@ -129,16 +134,16 @@ class PlayerMovement {
             });
         }
     }
-    
+
     // BUG: la moitié de la hitbox du joueur est dans le sol
     private setupCollision() {
         // Activer les collisions pour la scène et le joueur
         this.playerInstance.scene.collisionsEnabled = true;
         this.playerInstance.player.checkCollisions = true;
-        
+
         // Définir la taille de l'ellipsoïde de collision
         this.playerInstance.player.ellipsoid = new Vector3(0.3, 0.3, 0.3); // Ajuste la taille en fonction de ton modèle
-        
+
         // Définir l'offset de l'ellipsoïde
         this.playerInstance.player.ellipsoidOffset = new Vector3(0, 0.3, 0); // Ajuste la hauteur du joueur
     }
