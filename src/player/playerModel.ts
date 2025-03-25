@@ -30,7 +30,8 @@ class PlayerModel {
             playerModel.rotate(Vector3.Up(), Math.PI); // Rotate the model 180 degrees
             playerModel.position.y = -0.5; // Adjust the position of the model
 
-            await this.loadIdleAnimation();
+            const idleAnimation = await this.load_animation("/assets/animations/", "playerIdle.glb");
+            this.play_animation(idleAnimation, true);
         };
 
         meshTask.onError = (task, message, exception) => {
@@ -40,18 +41,28 @@ class PlayerModel {
         assetsManager.load();
     }
 
-    async loadIdleAnimation() {
+    async load_animation(path: string, fileName: string): Promise<AnimationGroup | null> {
         try {
-            const result = await SceneLoader.ImportAnimationsAsync("/assets/animations/", "playerIdle.glb", this.playerInstance.scene);
-            
+            const result = await SceneLoader.ImportAnimationsAsync(path, fileName, this.playerInstance.scene);
             if (result.animationGroups.length > 0) {
-                this.idleAnimation = result.animationGroups[0];
-                this.idleAnimation.loopAnimation = true;
-                this.idleAnimation.start(true);
+                return result.animationGroups[0];
             }
         } catch (error) {
-            console.error("Erreur lors du chargement de l'animation Idle :", error);
+            console.error(`Error loading animation from ${fileName}:`, error);
         }
+        return null;
+    }
+
+    play_animation(animation: AnimationGroup | null, loop: boolean) {
+        if (animation) {
+            animation.loopAnimation = loop;
+            animation.start(true);
+        }
+    }
+
+    async loadForwardAnimation() {
+        const forwardAnimation = await this.load_animation("/assets/animations/", "great sword run.glb");
+        this.play_animation(forwardAnimation, false);
     }
 }
 
