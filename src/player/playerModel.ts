@@ -3,6 +3,7 @@ import "@babylonjs/inspector";
 import "@babylonjs/loaders";
 import { Mesh, AssetsManager, Vector3, AnimationGroup, SceneLoader, Scene } from "@babylonjs/core";
 import { Player } from "./player";
+import PlayerStateMachine from "./playerStateMachine";
 
 class PlayerModel {
     private playerInstance: Player;
@@ -10,6 +11,31 @@ class PlayerModel {
 
     constructor(playerInstance: Player) {
         this.playerInstance = playerInstance;
+
+        const playerStates = {
+            idle: {
+                onEnter: () => console.log("Entering idle state"),
+                onExit: () => console.log("Exiting idle state"),
+            },
+            running: {
+                onEnter: () => console.log("Entering running state"),
+                onExit: () => console.log("Exiting running state"),
+            },
+            jumping: {
+                onEnter: () => console.log("Entering jumping state"),
+                onExit: () => console.log("Exiting jumping state"),
+            },
+            falling: {
+                onEnter: () => console.log("Entering falling state"),
+                onExit: () => console.log("Exiting falling state"),
+            },
+            attacking: {
+                onEnter: () => console.log("Entering attacking state"),
+                onExit: () => console.log("Exiting attacking state"),
+            },
+        };
+
+        this.playerInstance.stateMachine = new PlayerStateMachine(playerStates);
     }
 
     init() {

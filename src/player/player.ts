@@ -5,6 +5,7 @@ import { Scene, ArcRotateCamera, Mesh, MeshBuilder } from "@babylonjs/core";
 import { PlayerMovement } from "./playerMovement";
 import { PlayerAction } from "./playerAction";
 import { PlayerModel } from "./playerModel";
+import PlayerStateMachine from "./playerStateMachine";
 
 class Player {
     scene: Scene;
@@ -14,6 +15,7 @@ class Player {
     movement: PlayerMovement;
     actions: PlayerAction;
     model: PlayerModel;
+    stateMachine: PlayerStateMachine<any>;
 
     constructor(canvas: HTMLCanvasElement, scene: Scene) {
         this.scene = scene;
@@ -21,7 +23,7 @@ class Player {
 
         this.player = MeshBuilder.CreateCapsule("player", { height: 1.5, radius: 0.3 }, this.scene);
         this.player.isVisible = false;
-        
+
         this.camera = new ArcRotateCamera("camera", 0, 1, 7, this.player.position, this.scene);
         this.camera.attachControl(this.canvas, true);
         this.camera.lockedTarget = this.player;

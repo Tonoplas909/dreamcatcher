@@ -70,10 +70,30 @@ class PlayerMovement {
         const { camera, player } = this.playerInstance;
         let direction = new Vector3();
 
-        if (this.keyStatus[this.bindings.forward]) direction.addInPlace(camera.getForwardRay().direction);
-        if (this.keyStatus[this.bindings.backward]) direction.addInPlace(camera.getForwardRay().direction.scale(-1));
-        if (this.keyStatus[this.bindings.left]) direction.addInPlace(Vector3.Cross(camera.getForwardRay().direction, Vector3.Up()));
-        if (this.keyStatus[this.bindings.right]) direction.addInPlace(Vector3.Cross(camera.getForwardRay().direction, Vector3.Up()).scale(-1));
+        const forward = camera.getForwardRay().direction;
+        const right = Vector3.Cross(forward, Vector3.Up());
+
+        if (this.keyStatus[this.bindings.forward]) {
+            direction.addInPlace(forward);
+        }
+        if (this.keyStatus[this.bindings.backward]) {
+            direction.addInPlace(forward.scale(-1));
+        }
+        if (this.keyStatus[this.bindings.left]) {
+            direction.addInPlace(right);
+        }
+        if (this.keyStatus[this.bindings.right]) {
+            direction.addInPlace(right.scale(-1));
+        }
+
+        const movementState = Object.entries(this.bindings).find(([action, key]) => this.keyStatus[key]);
+        if (movementState) {
+            this.playerInstance.stateMachine.changeState(movementState[0]);
+        }
+
+        if (!this.isGrounded) {
+            this.playerInstance.stateMachine.changeState("falling");
+        }
 
         direction.y = 0;
         direction.normalize();
