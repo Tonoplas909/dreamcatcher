@@ -12,28 +12,31 @@ class PlayerModel {
     constructor(playerInstance: Player) {
         this.playerInstance = playerInstance;
 
-        const playerStates = {
-            idle: {
-                onEnter: () => console.log("Entering idle state"),
-                onExit: () => console.log("Exiting idle state"),
-            },
-            running: {
-                onEnter: () => console.log("Entering running state"),
-                onExit: () => console.log("Exiting running state"),
-            },
-            jumping: {
-                onEnter: () => console.log("Entering jumping state"),
-                onExit: () => console.log("Exiting jumping state"),
-            },
-            falling: {
-                onEnter: () => console.log("Entering falling state"),
-                onExit: () => console.log("Exiting falling state"),
-            },
-            attacking: {
-                onEnter: () => console.log("Entering attacking state"),
-                onExit: () => console.log("Exiting attacking state"),
-            },
+        const animationPromises: { [key: string]: Promise<AnimationGroup | null> } = {
+            forward: this.load_animation("/assets/animations/", "great sword run.glb"),
+            jump: this.load_animation("/assets/animations/", "great sword jump attack.glb"),
+            attack: this.load_animation("/assets/animations/", "great sword attack.glb"),
+            idle: this.load_animation("/assets/animations/", "playerIdle.glb"),
         };
+
+        const animations: { [key: string]: AnimationGroup | null } = {};
+
+        for (const [key, promise] of Object.entries(animationPromises)) {
+            promise.then((animation) => {
+            if (animation) {
+                animations[key] = animation;
+            }
+            });
+        }
+
+
+        const playerStates = Object.entries(animations).reduce((states, [key, animation]) => {
+            states[key] = {
+                onEnter: () => this.play_animation(animation, key === "idle" || key === "forward"),
+                onExit: () => console.log(`Exiting ${key} state`),
+            };
+            return states;
+        }, {});
 
         this.playerInstance.stateMachine = new PlayerStateMachine(playerStates);
     }
@@ -56,8 +59,7 @@ class PlayerModel {
             playerModel.rotate(Vector3.Up(), Math.PI); // Rotate the model 180 degrees
             playerModel.position.y = -0.5; // Adjust the position of the model
 
-            const idleAnimation = await this.load_animation("/assets/animations/", "playerIdle.glb");
-            this.play_animation(idleAnimation, true);
+            this.playerInstance.stateMachine.changeState("idle");
         };
 
         meshTask.onError = (task, message, exception) => {
@@ -84,11 +86,6 @@ class PlayerModel {
             animation.loopAnimation = loop;
             animation.start(true);
         }
-    }
-
-    async loadForwardAnimation() {
-        const forwardAnimation = await this.load_animation("/assets/animations/", "great sword run.glb");
-        this.play_animation(forwardAnimation, false);
     }
 }
 

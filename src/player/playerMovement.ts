@@ -75,6 +75,7 @@ class PlayerMovement {
 
         if (this.keyStatus[this.bindings.forward]) {
             direction.addInPlace(forward);
+            this.playerInstance.stateMachine.changeState("forward");
         }
         if (this.keyStatus[this.bindings.backward]) {
             direction.addInPlace(forward.scale(-1));
