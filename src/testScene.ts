@@ -2,8 +2,8 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders";
 import { Scene, Vector3, HemisphericLight, Mesh, MeshBuilder, StandardMaterial, Texture } from "@babylonjs/core";
-import { Player } from "./player"; // import of the other class
-import { Monster } from "./monster";
+import { Player } from "./Player/player"; // import of the other class
+import { Monster } from "./Monster/monster";
 
 class TestScene {
     constructor(canvas: HTMLCanvasElement, scene: Scene) {
@@ -36,16 +36,11 @@ class TestScene {
         // import class Player
         const player: Player = new Player(canvas, scene);
 
-        // import class Monster
-        const scab: Monster = new Monster(
-            canvas,
-            scene,
-            "scab",
-            new Vector3(3, 0, 5),
-            new Vector3(0, 5, 0),
-            new Vector3(3, 3, 3),
-            { width: 2.5, height: 2.5, depth: 2 }
-        );
+        // import monster
+        const monsters: Monster[] = [
+            new Monster(canvas, scene, player, "scab", new Vector3(0, 0, 2), new Vector3(2, 2, 2), { width: 1.5, height: 1.5, depth: 1.5 }),
+        ];
+        
     }
 }
 

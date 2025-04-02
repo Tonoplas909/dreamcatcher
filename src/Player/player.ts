@@ -5,6 +5,7 @@ import { Scene, ArcRotateCamera, Mesh, MeshBuilder } from "@babylonjs/core";
 import { PlayerMovement } from "./playerMovement";
 import { PlayerAction } from "./playerAction";
 import { PlayerModel } from "./playerModel";
+import { Monster } from "../Monster/monster";
 
 class Player {
     scene: Scene;
@@ -14,6 +15,7 @@ class Player {
     movement: PlayerMovement;
     actions: PlayerAction;
     model: PlayerModel;
+    monsters: Monster[];
 
     constructor(canvas: HTMLCanvasElement, scene: Scene) {
         this.scene = scene;
@@ -27,7 +29,7 @@ class Player {
         this.camera.lockedTarget = this.player;
 
         this.movement = new PlayerMovement(this);
-        this.actions = new PlayerAction(this);
+        this.actions = new PlayerAction(this, this.monsters);
         this.model = new PlayerModel(this);
 
         this.model.init();
