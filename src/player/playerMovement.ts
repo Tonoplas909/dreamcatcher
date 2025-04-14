@@ -48,7 +48,6 @@ class PlayerMovement {
             const key = event.key.toLowerCase();
             if (key in this.keyStatus) {
                 this.keyStatus[key] = true;
-                console.log(this.keyStatus);
             }
         });
 
@@ -73,6 +72,10 @@ class PlayerMovement {
         const forward = camera.getForwardRay().direction;
         const right = Vector3.Cross(forward, Vector3.Up());
 
+        if (!this.isGrounded) {
+            this.playerInstance.stateMachine.changeState("falling");
+        }
+
         if (this.keyStatus[this.bindings.forward]) {
             direction.addInPlace(forward);
             this.playerInstance.stateMachine.changeState("forward");
@@ -87,13 +90,8 @@ class PlayerMovement {
             direction.addInPlace(right.scale(-1));
         }
 
-        const movementState = Object.entries(this.bindings).find(([action, key]) => this.keyStatus[key]);
-        if (movementState) {
-            this.playerInstance.stateMachine.changeState(movementState[0]);
-        }
-
-        if (!this.isGrounded) {
-            this.playerInstance.stateMachine.changeState("falling");
+        if (direction.length() === 0) {
+            this.playerInstance.stateMachine.changeState("idle");
         }
 
         direction.y = 0;
