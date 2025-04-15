@@ -48,7 +48,6 @@ class PlayerMovement {
             const key = event.key.toLowerCase();
             if (key in this.keyStatus) {
                 this.keyStatus[key] = true;
-                console.log(this.keyStatus);
             }
         });
 
