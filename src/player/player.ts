@@ -28,9 +28,9 @@ class Player {
         this.camera.attachControl(this.canvas, true);
         this.camera.lockedTarget = this.player;
 
-        this.movement = new PlayerMovement(this);
         this.actions = new PlayerAction(this);
         this.model = new PlayerModel(this);
+        this.movement = new PlayerMovement(this);
 
         this.model.init();
         this.movement.init();

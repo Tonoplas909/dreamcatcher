@@ -36,7 +36,8 @@ class PlayerMovement {
     init() {
         this.setupKeyListeners();
         this.setupCollision();
-        this.playerInstance.scene.onBeforeRenderObservable.add(() => this.update());
+        this.playerInstance.scene.onAfterRenderObservable.add(() => this.update());
+        console.log("Movement initialized");
     }
 
     private setupKeyListeners() {
@@ -58,6 +59,8 @@ class PlayerMovement {
     }
 
     private update() {
+        if (!this.playerInstance.stateMachine)
+            return;
         const deltaTime = this.playerInstance.scene.getEngine().getDeltaTime() / 1000;
         this.handleMovement(deltaTime);
         this.handleJump();
