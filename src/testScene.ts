@@ -34,7 +34,7 @@ class TestScene {
         cube1.checkCollisions = true;
 
         // import class Player
-        const player: Player = new Player(canvas, scene);
+        const player: Player = new Player(canvas, scene, new Vector3(0, 1.5, 0)); // Create a new player instance
 
         // import monster
         const monsters: Monster[] = [

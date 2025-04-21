@@ -12,7 +12,7 @@ import {
     Material,
     StandardMaterial,
 } from "@babylonjs/core";
-import { TestScene } from "./testScene"; // import of the other class
+import { SchoolScene } from "./schoolScene"; // import of the other class
 
 class App {
     constructor() {
@@ -28,7 +28,10 @@ class App {
         var scene = new Scene(engine);
 
         // import class TestScene
-        var testScene = new TestScene(canvas, scene);
+        // var testScene = new TestScene(canvas, scene);
+
+        //import class SchoolScene
+        var schoolScene = new SchoolScene(canvas, scene);
 
         // request pointer lock on canvas click
         canvas.addEventListener("click", () => {

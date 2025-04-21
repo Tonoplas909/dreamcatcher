@@ -1,7 +1,7 @@
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders";
-import { Scene, ArcRotateCamera, Mesh, MeshBuilder, float } from "@babylonjs/core";
+import { Scene, ArcRotateCamera, Mesh, MeshBuilder, float, Vector3 } from "@babylonjs/core";
 import { PlayerMovement } from "./playerMovement";
 import { PlayerAction } from "./playerAction";
 import { PlayerModel } from "./playerModel";
@@ -18,14 +18,17 @@ class Player {
     model: PlayerModel;
     hud: Hud;
     monsters: Monster[];
+    playerPosition: Vector3;
     life: float = 100;
 
-    constructor(canvas: HTMLCanvasElement, scene: Scene) {
+    constructor(canvas: HTMLCanvasElement, scene: Scene, playerPosition: Vector3) {
         this.scene = scene;
         this.canvas = canvas;
+        this.playerPosition = playerPosition;
 
         this.player = MeshBuilder.CreateCapsule("player", { height: 1.5, radius: 0.3 }, this.scene);
         this.player.isVisible = false;
+        this.player.position = this.playerPosition;
         
         this.camera = new ArcRotateCamera("camera", 0, 1, 7, this.player.position, this.scene);
         this.camera.attachControl(this.canvas, true);
